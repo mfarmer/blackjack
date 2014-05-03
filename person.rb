@@ -105,4 +105,33 @@ class Person
     @hand.cards << card
   end
 
+  def perform_turn(dealer,deck)
+    while @active_status
+
+      puts "\n[i] Dealer #{dealer.name} asks: \"What would you like to do?\""
+      puts "[?] Please enter the corresponding integer for your choice (1-2, inclusive)"
+      @hand.possible_values_inline
+      puts "    1) Hold"
+      puts "    2) Hit"
+      print "==> "
+      choice = STDIN.gets.chomp.to_i
+
+      while choice < 1 || choice > 2
+        puts "[!] Invalid choice. Please enter a value between 1-2 inclusive that corresponds with your choice below."
+        puts "[i] 1) Hold 2) Hit"
+        print "==> "
+        choice = STDIN.gets.chomp.to_i
+      end
+
+      if choice == 1
+        puts "\n[i] #{@name} is holding at #{@hand.highest_value}"
+        @active_status = false
+      else
+        puts "\n[i] #{@name} is hitting."
+        receive_card(deck.deal_card)
+        @hand.description
+      end
+    end
+  end
+
 end

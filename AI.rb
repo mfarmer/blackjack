@@ -19,4 +19,22 @@ class AI < Person
     @recent_bet
   end
 
+  def perform_turn(deck)
+    if @hold_amount.is_a?(Array)
+      limit = rand(@hold_amount[0]..@hold_amount[@hold_amount.count-1])
+    else
+      limit = @hold_amount
+    end
+    while @hand.highest_value < limit
+      puts "\n[i] #{@name} is hitting."
+      receive_card(deck.deal_card)
+      @hand.description
+    end
+
+    if @active_status
+      puts "\n[i] #{@name} is holding at #{@hand.highest_value}"
+    end
+
+  end
+
 end
