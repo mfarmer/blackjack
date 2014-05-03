@@ -52,6 +52,7 @@ class Game
     @player.active_status = true
     @opponent.active_status = true
     @dealer.active_status = true
+    enter_to_continue
   end
 
   def determine_player_names
@@ -70,7 +71,20 @@ class Game
     end
   end
 
+  def perform_turns
+    @player.perform_turn(@dealer,@deck)
+    enter_to_continue
+
+    @opponent.perform_turn(@deck)
+    enter_to_continue
+
+    @dealer.perform_turn(@deck)
+    enter_to_continue
+  end
+
   def deal_cards
+    puts "\n[!] #{@dealer.name} deals the cards..."
+
     2.times do
       @player.receive_card(@deck.deal_card)
       @opponent.receive_card(@deck.deal_card)
@@ -80,6 +94,64 @@ class Game
     @player.hand.description
     @opponent.hand.description
     @dealer.hand.semi_discrete_description
+  end
+
+  def check_win_conditions
+    determine_active_status_from_hand_value(@player)
+    determine_active_status_from_hand_value(@opponent)
+    determine_active_status_from_hand_value(@dealer)
+
+    if @dealer.active_status
+      determine_game_payout_for(@player)
+      determine_game_payout_for(@opponent)
+    else
+      # House busted. Are there any players with active hands?
+      if @player.active_status
+        win_bet(@player)
+      end
+
+      if @opponent.active_status
+        win_bet(@opponent)
+      end
+
+      if !@player.active_status && !@opponent.active_status
+        # everyone busted
+        puts "[!] House and #{@opponent.name} have pushed. #{@opponent.recent_bet} credit bet is returned."
+        @opponent.credits += @opponent.recent_bet
+      end
+    end
+
+    # Has somebody won the game yet?
+    if @player.credits >= @winning_credit_amount && @opponent.credits < @player.credits || @player.credits > 0 && @opponent.credits <= 0
+      puts "\n[!] CONGRATULATIONS, you have beaten #{@opponent.name}!"
+      recap_player_credits
+      return true
+    elsif @opponent.credits >= @winning_credit_amount && @player.credits < @opponent.credits || @opponent.credits > 0 && @player.credits <= 0
+      puts "\n[!] Sorry, but #{@opponent.name} has beaten you."
+      recap_player_credits
+      return true
+    end
+    return false
+  end
+
+  def accept_bets
+    puts "\n[!] Dealer #{@dealer.name} says: \"Place your bets...\""
+
+    puts "\n[?] What is your bet? (Enter an integer between 1 and 10, inclusive)."
+    puts "[i] Your Credit Balance: #{@player.credits}"
+    print "==> "
+    @player.recent_bet = STDIN.gets.chomp.to_i
+
+    while @player.recent_bet < 1 || @player.recent_bet > 10
+      puts "\n[?] Invalid bet. Please enter a number from 1 to 10."
+      print "==> "
+      @player.recent_bet = STDIN.gets.chomp.to_i
+    end
+
+    @player.credits -= @player.recent_bet
+
+    puts "\n[!] #{@player.name} bets #{@player.recent_bet} credits."
+    puts "[!] #{@opponent.name} bets #{@opponent.make_bet} credits."
   end
 
   def determine_game_payout_for(person)
