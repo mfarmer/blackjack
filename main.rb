@@ -40,7 +40,7 @@ while true
 
   game.opponent.perform_turn(game.deck)
   game.enter_to_continue
-  
+
   game.dealer.perform_turn(game.deck)
   game.enter_to_continue
 
@@ -59,7 +59,7 @@ while true
     end
 
     if game.opponent.active_status
-      win_bet(game.opponent)
+      game.win_bet(game.opponent)
     end
 
     if !game.player.active_status && !game.opponent.active_status
